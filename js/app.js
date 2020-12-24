@@ -10,10 +10,18 @@ let carrito = {};
 
 document.addEventListener("DOMContentLoaded", () => {
     fetchData()
+    if(localStorage.getItem('carrito')) {
+        carrito = JSON.parse(localStorage.getItem('carrito'))
+        pintarCarrito()
+    }
 })
 
 cards.addEventListener('click', e => {
     addCarrito(e)
+})
+
+items.addEventListener('click', e => {
+    btnAccion(e)
 })
 
 const fetchData = async () => {
@@ -68,13 +76,13 @@ const setCarrito = objeto => {
 const pintarCarrito = () => {
     items.innerHTML = '';
     Object.values(carrito).forEach(producto => {
-        items.innerHTML= '';
         templateCarrito.querySelector('th').textContent = producto.id;
         templateCarrito.querySelectorAll('td')[0].textContent = producto.title;
         templateCarrito.querySelectorAll('td')[1].textContent = producto.cantidad;
-        templateCarrito.querySelector('.btn-info').dataset.id = producto.id;
-        templateCarrito.querySelector('.btn-danger').dataset.id = producto.id;
         templateCarrito.querySelector('span').textContent = producto.cantidad * producto.precio;
+
+        templateCarrito.querySelector('.btn-info').dataset.id = producto.id
+        templateCarrito.querySelector('.btn-danger').dataset.id = producto.id
 
         const clone = templateCarrito.cloneNode(true)
         fragment.appendChild(clone)
@@ -84,6 +92,7 @@ const pintarCarrito = () => {
 
     pintarFooter()
 
+    localStorage.setItem('carrito', JSON.stringify(carrito))
 }
 
 const pintarFooter = () => {
@@ -115,3 +124,24 @@ const pintarFooter = () => {
     
 }
 
+const btnAccion = e => {
+    if (e.target.classList.contains('btn-info')) {
+       const producto = carrito[e.target.dataset.id]
+       producto.cantidad++
+       carrito[e.target.dataset.id] = { ...producto }
+       pintarCarrito()
+    } 
+
+    if (e.target.classList.contains('btn-danger')) {
+        const producto = carrito[e.target.dataset.id]
+        producto.cantidad--
+        if (producto.cantidad === 0){
+            delete carrito[e.target.dataset.id]
+        } else {
+            carrito[e.target.dataset.id] = {...producto}
+        pintarCarrito()
+        }
+
+     e.stopPropagation()
+    }
+}
